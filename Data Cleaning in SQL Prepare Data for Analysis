@@ -1,0 +1,59 @@
+--Detect and remove duplicates with Common table expressions
+
+with cte1 as (
+select CustomerID, ShipName, ShipAddress, ShipPostalCode, ShipCountry,
+ROW_NUMBER() over(partition by CustomerID order by CustomerID) as rn 
+from Orders
+)
+
+select * from cte1
+where rn = 1
+
+------
+with cte2 as(
+	select ProductID,ProductName,QuantityPerUnit,UnitPrice,
+	row_number() over(partition by QuantityPerUnit order by QuantityPerUnit) as rn
+	from products
+)
+select * 
+from cte2
+where rn= 1
+
+--Clean data with CASE statement
+
+select freight,
+case when freight between 0 and 50 then 'low charge'
+	 when freight between 50 and 200 then 'medium charge'
+	 when freight > 200 then 'high charge'
+	 else 'no charge'
+end as Charge
+from orders
+
+-------
+
+select QuantityPerUnit,
+case when UnitsOnOrder > 50 and UnitsInStock < 20 then 'Restock Now' 
+	 when UnitsOnOrder between 30 and 40 and UnitsInStock< 50 then 'Restock Next Week'
+	 when UnitsOnOrder<30 and UnitsInStock<50 then 'Restock Next Month'
+	 when UnitsOnOrder<5 and UnitsInStock <=50 then 'Restock In 6 Months'
+	 else 'Ask manager'
+end as WhenToRestock
+from products
+
+
+--Dealing with Nulls in SQL
+
+
+with blank_fax as(
+select CustomerID,ContactName,City,Region,
+ISNULL(Fax,'No Fax Specified') as Fax
+from Customers
+)
+select * 
+from blank_fax
+where Fax = 'No Fax Specified'
+
+------
+select CustomerID,ContactName , City ,
+ISNULL(Region, 'No Region') as Region
+from Customers
